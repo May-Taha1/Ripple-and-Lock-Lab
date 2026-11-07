@@ -1,0 +1,363 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Balance and Lock Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Layout: bold tab bar over one working panel per station; chunky bordered cards, projector-friendly size. */
+:root{
+  --navy:#1B1F4B; --ink2:#4A4F7A; --bg:#F3F8FF; --card:#FFFFFF;
+  --coral:#FF5D73; --teal:#12B5A5; --violet:#7A5CFF; --yellow:#FFC93C; --blue:#2F9BFF; --green:#5FB41E;
+  --coral-t:#FFE3E7; --teal-t:#D5F5F1; --violet-t:#E8E2FF; --yellow-t:#FFF2C7; --blue-t:#DCEDFF; --green-t:#E8F7D4;
+  --font:'Nunito','Segoe UI',Arial,sans-serif; --r:14px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--navy);font-family:var(--font);font-size:17px;line-height:1.45;margin:0;
+  padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto}
+header.top{padding:22px 0 10px;display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+h1{font-size:clamp(26px,4.4vw,40px);line-height:1.05;margin:0;font-weight:900;letter-spacing:-.01em}
+.sub{color:var(--ink2);margin:6px 0 0;font-weight:700}
+.badge{background:var(--yellow);border:2px solid var(--navy);border-radius:999px;padding:4px 14px;font-weight:900;font-size:13px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+nav.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 18px}
+nav.tabs button{font:inherit;text-align:left;cursor:pointer;background:var(--card);border:2px solid var(--navy);border-radius:var(--r);padding:10px 12px;color:var(--navy);box-shadow:0 4px 0 var(--navy);min-width:0}
+nav.tabs button b{display:block;font-size:17px;font-weight:900}
+nav.tabs button span{display:block;font-size:13px;color:var(--ink2);font-weight:700}
+nav.tabs button[aria-selected=true]{background:var(--tabc,var(--blue));color:#fff;transform:translateY(2px);box-shadow:0 2px 0 var(--navy)}
+nav.tabs button[aria-selected=true] span{color:#fff}
+nav.tabs button:focus-visible,.btn:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible,.opt:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--card);border:2px solid var(--navy);border-radius:var(--r);padding:16px 18px;margin:0 0 16px}
+.card h2{margin:0 0 6px;font-size:22px;font-weight:900}
+.card h3{margin:0 0 6px;font-size:18px;font-weight:900}
+.mission{background:var(--yellow-t);border-color:var(--navy)}
+.lead{color:var(--ink2);font-weight:700;margin:0 0 10px}
+.btn{font:inherit;font-weight:900;border:2px solid var(--navy);border-radius:12px;background:var(--yellow);color:var(--navy);padding:9px 18px;cursor:pointer;box-shadow:0 4px 0 var(--navy)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 var(--navy)}
+.btn.alt{background:var(--card)}.btn.go{background:var(--green);color:#fff}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.chain{display:flex;gap:6px;align-items:stretch;flex-wrap:wrap;margin:8px 0}
+.node{flex:1 1 130px;min-width:0;border:2px solid var(--navy);border-radius:12px;padding:8px 10px;background:var(--blue-t);font-weight:800;font-size:15px;transition:.25s}
+.node small{display:block;font-weight:700;color:var(--ink2);font-size:12.5px}
+.node.hit{background:var(--coral);color:#fff}.node.hit small{color:#fff}
+.node.ok{background:var(--green-t)}.node.bad{background:var(--coral-t)}
+.arrow{align-self:center;font-weight:900;font-size:22px}
+.slot{flex:1 1 140px;min-height:74px;border:2px dashed var(--navy);border-radius:12px;padding:8px;background:#fff;cursor:pointer;font-weight:800;font-size:15px;min-width:0}
+.slot i{display:block;font-style:normal;font-size:12px;color:var(--ink2);font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+.slot.f{border-style:solid;background:var(--blue-t)}.slot.good{background:var(--green-t)}.slot.wrong{background:var(--coral-t)}
+.opts{display:grid;gap:8px;margin:8px 0}
+.opt{font:inherit;text-align:left;cursor:pointer;background:#fff;border:2px solid var(--navy);border-radius:12px;padding:9px 12px;color:var(--navy);font-weight:700;min-width:0}
+.opt:hover{background:var(--blue-t)}.opt.sel{background:var(--violet-t);border-color:var(--violet);box-shadow:inset 0 0 0 2px var(--violet)}
+.opt.good{background:var(--green-t);border-color:var(--green)}.opt.wrong{background:var(--coral-t);border-color:var(--coral)}
+.fb{border-radius:12px;padding:10px 14px;font-weight:700;margin-top:10px;border:2px solid var(--navy)}
+.fb.good{background:var(--green-t)}.fb.bad{background:var(--coral-t)}.fb.info{background:var(--blue-t)}
+.tag{display:inline-block;border:2px solid var(--navy);border-radius:999px;padding:1px 10px;font-size:12px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;background:var(--violet-t)}
+.tag.red{background:var(--coral-t)}.tag.green{background:var(--green-t)}.tag.y{background:var(--yellow-t)}
+table.log{border-collapse:collapse;width:100%;font-size:14.5px}
+table.log th,table.log td{border:2px solid var(--navy);padding:6px 8px;text-align:left;vertical-align:top}
+table.log th{background:var(--blue-t);font-weight:900}
+.tw{overflow-x:auto}
+select,textarea,input[type=text]{font:inherit;font-weight:700;border:2px solid var(--navy);border-radius:10px;padding:8px 10px;background:#fff;color:var(--navy);max-width:100%}
+textarea{width:100%;min-height:90px}
+select{min-width:0;width:100%}
+label.lbl{display:block;font-weight:900;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);margin:8px 0 3px}
+.dots{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin:6px 0}
+.dots span{border:2px solid var(--navy);border-radius:6px;text-align:center;font-weight:900;padding:4px 0;font-size:14px;background:var(--green-t)}
+.dots span.x{background:var(--coral-t)}
+.big{font-size:32px;font-weight:900;line-height:1}
+.bar{height:20px;border:2px solid var(--navy);border-radius:10px;background:#fff;overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--blue);transition:width .6s}
+.score{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0}
+.score div{border:2px solid var(--navy);border-radius:12px;padding:6px 12px;background:var(--yellow-t);font-weight:900}
+.chk{list-style:none;padding:0;margin:8px 0}.chk li{padding:3px 0;font-weight:800}
+.chk li::before{content:"○ ";color:var(--ink2)}.chk li.y::before{content:"✔ ";color:var(--green)}
+.fb+.row,.opts+.row{margin-top:10px}
+.note{font-size:14px;color:var(--ink2);font-weight:700}
+footer{margin-top:24px;color:var(--ink2);font-size:14px;font-weight:700}
+@media(max-width:720px){nav.tabs{grid-template-columns:repeat(2,1fr)}.grid2,.grid3{grid-template-columns:1fr}.arrow{display:none}body{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<div class="wrap">
+<header class="top"><div><h1>Balance and Lock Lab</h1><p class="sub">Grade 11 AI · Week 11 · Build it, balance it, lock it</p></div><span class="badge">Week 11 · Lab</span></header>
+<nav class="tabs" role="tablist" aria-label="Lab stations"><button role="tab" data-tab="h1" aria-selected="false" style="--tabc:var(--coral)"><b>H1 Build and score</b><span>Chain + E · U · P</span></button><button role="tab" data-tab="h2" aria-selected="false" style="--tabc:var(--teal)"><b>H2 Log and edge case</b><span>6 runs + fallback</span></button><button role="tab" data-tab="h3" aria-selected="false" style="--tabc:var(--violet)"><b>H3 Lever Lab</b><span>Predict, pull, measure</span></button><button role="tab" data-tab="h4" aria-selected="false" style="--tabc:var(--blue)"><b>H4 Lock and defend</b><span>Impact + regression</span></button></nav>
+<section class="panel" id="h1" role="tabpanel">
+ <div class="card mission"><h2>H1 · Build and score</h2><p class="lead">Mission: assemble the Bus Notice Assistant so every hand-off works, then score one output on efficiency, usability and performance, using an input the build was not tuned on. Tap a card to place it in the next slot. Tap a filled slot to take it out.</p></div>
+ <div class="card"><h3>1 · Put the parts in order</h3>
+  <div class="chain" id="h1slots"></div>
+  <p class="note">Pick from the parts:</p><div class="opts" id="h1pool" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))"></div>
+  <div class="row"><button class="btn go" id="h1check">Check my chain</button><button class="btn alt" id="h1reset">Start again</button></div>
+  <div id="h1fb" class="fb" hidden></div></div>
+ <div class="card"><h3>2 · Fix the weakest hand-off</h3>
+  <p class="lead">Step 1 prints the delay as words: “ten mins”. Step 2 expects a number of minutes, such as 10. Which hand-off is broken, and what is the smallest fix?</p>
+  <div class="chain"><div class="node">RECORD<small>made-up delay</small></div><span class="arrow">→</span><div class="node">STEP 1<small>extract facts</small></div><span class="arrow">→</span><div class="node">STEP 2<small>write notice</small></div><span class="arrow">→</span><div class="node">OUTPUT<small>parent notice</small></div></div>
+  <label class="lbl" for="h1ho">Broken hand-off</label>
+  <select id="h1ho"><option value="">Choose…</option><option value="a">Record → Step 1</option><option value="b">Step 1 → Step 2</option><option value="c">Step 2 → Output</option></select>
+  <div class="opts" id="h1fix"></div>
+  <div class="row"><button class="btn go" id="h1fixbtn">Check my fix</button></div><div id="h1fb2" class="fb" hidden></div></div>
+ <div class="card"><h3>3 · Score a fresh input, honestly</h3>
+  <p class="lead">On the 5 practice records the build scored 5 of 5. Now run it on a fresh record it was never tuned on. Score each goal out of 5, then verify against the trusted source.</p>
+  <div class="grid2">
+   <div><span class="tag">Fresh record</span><p><b>Route 12 · delay 10 min · roadworks</b></p><span class="tag y">Output</span><p><b>“Route 12 now leaves at 07:05. Delayed by 10 minutes because of roadworks.”</b></p><p class="note">Time to produce: about 10 seconds.</p></div>
+   <div><label class="lbl" for="h1e">Efficiency (speed, cost, steps)</label><select id="h1e"></select><label class="lbl" for="h1u">Usability (can a parent act on it?)</label><select id="h1u"></select><label class="lbl" for="h1p">Performance (is it correct?)</label><select id="h1p"></select>
+    <div class="row" style="margin-top:10px"><button class="btn" id="h1ver">Verify against the timetable</button></div></div></div>
+  <div id="h1tt" hidden class="tw"><table class="log" style="margin-top:10px"><thead><tr><th>Route</th><th>7</th><th>12</th><th>15</th><th>21</th><th>30</th></tr></thead><tbody><tr><td><b>Official timetable</b></td><td>07:10</td><td><b>07:15</b></td><td>07:25</td><td>07:40</td><td>07:55</td></tr></tbody></table></div>
+  <div id="h1fb3" class="fb" hidden></div>
+  <label class="lbl">Which score is the honest one?</label>
+  <div class="opts" id="h1hon"></div><div id="h1fb4" class="fb" hidden></div></div>
+ <div class="card"><div class="row"><button class="btn" id="h1copy">Copy my answers</button></div></div>
+</section>
+
+<section class="panel" id="h2" role="tabpanel">
+ <div class="card mission"><h2>H2 · Log and edge case</h2><p class="lead">Mission: run 6 inputs, judge each output against the three goals and the governance rules, and log it. Then switch on a graceful fallback and run the awkward inputs again.</p></div>
+ <div class="card"><div class="row" style="justify-content:space-between"><h3 id="h2head">Run 1 of 6</h3><div class="score"><div id="h2pts">Points 0</div></div></div>
+  <div class="row" style="margin-bottom:8px"><label class="lbl" style="margin:0"><input type="checkbox" id="h2fall"> Graceful fallback ON</label><span class="note">Turn it on after you have logged all 6 runs, then re-run the 3 awkward inputs.</span></div>
+  <div id="h2stage"></div></div>
+ <div class="card"><h3>Evaluation log</h3><div class="tw"><table class="log" id="h2log"><thead><tr><th>#</th><th>Input type</th><th>Output (short)</th><th>Goal that failed</th><th>Component to change</th><th>Check</th></tr></thead><tbody></tbody></table></div></div>
+ <div class="card" id="h2end" hidden><h3>Your fallback</h3><p class="lead">A blank record made the assistant invent a delay. Which fallback sentence is graceful?</p><div class="opts" id="h2fb_opts"></div><div id="h2fb" class="fb" hidden></div><div class="row"><button class="btn" id="h2copy">Copy my answers</button></div></div>
+</section>
+
+<section class="panel" id="h3" role="tabpanel">
+ <div class="card mission"><h2>H3 · Lever Lab</h2><p class="lead">Mission: pull ONE lever, predict its trade-off first, then re-run the same 5 fresh records and measure. Accuracy = correct ÷ 5. Gain = after − before, in percentage points (pp). Your criteria: at least 80% correct AND under 15 seconds per notice.</p></div>
+ <div class="card"><h3>Before any change</h3><div class="dots" id="h3before" style="grid-template-columns:repeat(5,1fr)"></div>
+  <div class="score"><div>Efficiency 4/5 · 10 s</div><div>Usability 4/5</div><div>Performance 2/5 = 40%</div></div></div>
+ <div class="card"><h3>1 · Choose ONE lever</h3><div class="opts" id="h3opts" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"></div></div>
+ <div class="card"><h3>2 · Predict the trade-off</h3><p class="lead">For each goal, what will happen? Commit before you run.</p>
+  <div class="grid3"><div><label class="lbl" for="h3pe">Efficiency</label><select id="h3pe"><option value="">Choose…</option><option value="up">Goes up</option><option value="same">Stays the same</option><option value="down">Goes down</option></select></div><div><label class="lbl" for="h3pu">Usability</label><select id="h3pu"><option value="">Choose…</option><option value="up">Goes up</option><option value="same">Stays the same</option><option value="down">Goes down</option></select></div><div><label class="lbl" for="h3pp">Performance</label><select id="h3pp"><option value="">Choose…</option><option value="up">Goes up</option><option value="same">Stays the same</option><option value="down">Goes down</option></select></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn go" id="h3run">Run on the 5 fresh records</button></div></div>
+ <div class="card" id="h3res" hidden><h3>3 · Result</h3><div class="dots" id="h3after" style="grid-template-columns:repeat(5,1fr)"></div><div class="tw"><table class="log" id="h3tab"></table></div><div id="h3fb" class="fb" hidden></div></div>
+ <div class="card"><h3>Lever comparison (fills as you run)</h3><div class="tw"><table class="log" id="h3cmp"><thead><tr><th>Lever</th><th>E</th><th>U</th><th>P</th><th>Time</th><th>Accuracy</th><th>Gain</th><th>Meets both criteria?</th></tr></thead><tbody></tbody></table></div>
+  <label class="lbl" for="h3dec">Your decision: which option meets BOTH criteria (80% and under 15 s)?</label>
+  <select id="h3dec"><option value="">Choose…</option><option value="data">Data lever (add timetable)</option><option value="prompt">Prompt lever (shorter)</option><option value="structure">Structure lever (check step)</option><option value="all">All three at once</option></select>
+  <div class="row" style="margin-top:10px"><button class="btn go" id="h3decbtn">Check my decision</button><button class="btn" id="h3copy">Copy my answers</button></div><div id="h3dfb" class="fb" hidden></div></div>
+</section>
+
+<section class="panel" id="h4" role="tabpanel">
+ <div class="card mission"><h2>H4 · Lock and defend</h2><p class="lead">Mission: run the impact check, run the regression check, lock one version, then defend it against the panel with your trade-off and two named checks.</p></div>
+ <div class="card"><h3>1 · Impact check</h3>
+  <label class="lbl" for="h4a">Who could be affected by a wrong notice?</label><select id="h4a"><option value="">Choose…</option><option value="1">Parents and students waiting at the stop</option><option value="0">Nobody: it is only a school project</option><option value="0">Only the team that built it</option></select>
+  <label class="lbl" for="h4b">How would we catch a mistake before it is sent?</label><select id="h4b"><option value="">Choose…</option><option value="1">A staff member compares each notice with the timetable</option><option value="0">We would wait for complaints</option><option value="0">We will not need to: it is accurate</option></select>
+  <label class="lbl" for="h4c">Which governance rule must it respect?</label><select id="h4c"><option value="">Choose…</option><option value="1">No personal data, and a human approves</option><option value="0">Be as fast as possible</option><option value="0">There is no rule for school projects</option></select>
+  <div class="row" style="margin-top:10px"><button class="btn go" id="h4imp">Check my impact check</button></div><div id="h4fb1" class="fb" hidden></div></div>
+ <div class="card"><h3>2 · Regression check: Version 1 or Version 2?</h3>
+  <p class="lead">Version 1 is the tested build (data lever). Version 2 has a last-minute change. Tick every row that got WORSE, then decide.</p>
+  <div class="tw"><table class="log"><thead><tr><th>Worse?</th><th>Criterion</th><th>Version 1</th><th>Version 2</th></tr></thead><tbody id="h4reg"></tbody></table></div>
+  <label class="lbl">Your decision</label><div class="opts" id="h4dec"></div>
+  <div class="row"><button class="btn go" id="h4regbtn">Check regression and decision</button></div><div id="h4fb2" class="fb" hidden></div></div>
+ <div class="card"><h3>3 · Demo spine: your 20-second defence</h3>
+  <p class="lead">Write it in your own words. Include: what you optimised and the gain (a number with its unit), the trade-off it cost, and two named checks.</p>
+  <textarea id="h4txt" aria-label="Your defence" placeholder="I optimised … for …, which cost …; I checked … and …"></textarea>
+  <ul class="chk" id="h4chk"><li data-k="gain">A number with its unit (for example +40 pp)</li><li data-k="cost">A named cost (what you gave up)</li><li data-k="c1">Check 1: verified against a trusted source</li><li data-k="c2">Check 2: a human approves, or an impact check</li></ul></div>
+ <div class="card"><h3>4 · The panel</h3><p class="lead">Pick the strongest answer to each hard question.</p><div id="h4q"></div><div class="score"><div id="h4sc">Panel 0 / 3</div></div></div>
+ <div class="card"><div class="row"><button class="btn" id="h4copy">Copy my answers</button></div></div>
+</section>
+
+<footer>Made-up examples only. No names, faces or personal details. Nothing you type here is saved or sent anywhere. Use “Copy my answers” and paste into your worksheet.</footer>
+</div>
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+const initDone={};
+function show(id,push){
+  if(!/^h[1-4]$/.test(id)) id='h1';
+  $$('[role=tab]').forEach(t=>t.setAttribute('aria-selected',t.dataset.tab===id));
+  $$('.panel').forEach(p=>p.classList.toggle('on',p.id===id));
+  if(!initDone[id]&&window['init_'+id]){initDone[id]=1;window['init_'+id]()}
+  if(push!==false&&location.hash!=='#'+id){try{history.replaceState(null,'','#'+id)}catch(e){location.hash=id}}
+}
+$$('[role=tab]').forEach(t=>t.addEventListener('click',()=>show(t.dataset.tab)));
+window.addEventListener('hashchange',()=>show(location.hash.slice(1),false));
+function copyText(txt,btn){
+  const done=()=>{const o=btn.textContent;btn.textContent='Copied ✔';setTimeout(()=>btn.textContent=o,1600)};
+  const fb=()=>{let ta=btn.parentElement.querySelector('textarea.cp');if(!ta){ta=document.createElement('textarea');ta.className='cp';ta.readOnly=true;btn.parentElement.appendChild(ta)}ta.value=txt;ta.style.width='100%';ta.select()};
+  try{navigator.clipboard.writeText(txt).then(done).catch(fb)}catch(e){fb()}
+}
+function fbox(id,cls,html){const e=$('#'+id);e.className='fb '+cls;e.innerHTML=html;e.hidden=false}
+</script>
+<script>
+const R={};
+const opt5=(id)=>{$(id).innerHTML='<option value="">Score…</option>'+[1,2,3,4,5].map(n=>`<option value="${n}">${n} / 5</option>`).join('')};
+/* ---------- H1 ---------- */
+const H1C=[
+ {id:'x',tag:'RECORD?',txt:'A delay record with the driver’s name and phone number',slot:-1},
+ {id:'p1',tag:'STEP 1',txt:'Extract the facts: route number and delay in minutes',slot:1},
+ {id:'o',tag:'OUTPUT',txt:'Notice, approved by a staff member before it is sent',slot:3},
+ {id:'d',tag:'RECORD',txt:'Made-up delay record: route, minutes late, reason',slot:0},
+ {id:'t2',tag:'STEP 2',txt:'Write a short notice for parents',slot:2}];
+let h1s=[null,null,null,null];
+const H1LAB=['1 · Record','2 · Step 1','3 · Step 2','4 · Output'];
+function h1draw(){
+  $('#h1slots').innerHTML=h1s.map((id,i)=>{const c=H1C.find(c=>c.id===id);return (i?'<span class="arrow">→</span>':'')+`<div class="slot ${c?'f':''}" data-i="${i}" role="button" tabindex="0"><i>${H1LAB[i]}</i>${c?esc(c.txt):'<span class="note">empty</span>'}</div>`}).join('');
+  $('#h1pool').innerHTML=H1C.filter(c=>!h1s.includes(c.id)).map(c=>`<button class="opt" data-id="${c.id}"><span class="tag">${c.tag}</span><br>${esc(c.txt)}</button>`).join('');
+}
+function init_h1(){
+  h1draw();
+  $('#h1pool').addEventListener('click',e=>{const b=e.target.closest('[data-id]');if(!b)return;const i=h1s.indexOf(null);if(i<0)return;h1s[i]=b.dataset.id;$('#h1fb').hidden=true;h1draw()});
+  $('#h1slots').addEventListener('click',e=>{const s=e.target.closest('[data-i]');if(!s)return;h1s[+s.dataset.i]=null;$('#h1fb').hidden=true;h1draw()});
+  $('#h1reset').onclick=()=>{h1s=[null,null,null,null];$('#h1fb').hidden=true;h1draw()};
+  $('#h1check').onclick=()=>{
+    if(h1s.includes(null)){fbox('h1fb','info','Fill all four slots first.');return}
+    const slots=$$('#h1slots .slot');let ok=0;
+    h1s.forEach((id,i)=>{const c=H1C.find(c=>c.id===id);const g=c.slot===i;if(g)ok++;slots[i].classList.add(g?'good':'wrong')});
+    R.h1a=ok;
+    if(h1s.includes('x'))fbox('h1fb','bad',`Governance rule: no names, faces or personal details in any data. Swap the record with the driver’s name for the made-up record. ${ok} of 4 slots correct.`);
+    else if(ok===4)fbox('h1fb','good','All four slots are right: record → Step 1 → Step 2 → output. Each output feeds the next input, and a human approves before sending.');
+    else fbox('h1fb','bad',`${ok} of 4 slots are right. Follow the data: what must happen before a notice can be written?`);
+  };
+  const fixes=[['Make Step 1 print the delay as a number: “10”',1],['Rewrite Step 2 from scratch',0],['Add 20 more delay records',0]];
+  $('#h1fix').innerHTML=fixes.map(f=>`<button class="opt" data-ok="${f[1]}">${esc(f[0])}</button>`).join('');
+  $('#h1fix').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;$$('#h1fix .opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+  $('#h1fixbtn').onclick=()=>{
+    const ho=$('#h1ho').value,sel=$('#h1fix .sel');
+    if(!ho||!sel){fbox('h1fb2','info','Choose the broken hand-off and one fix.');return}
+    if(ho!=='b'){fbox('h1fb2','bad','Not that one. Look at what Step 1 prints and what Step 2 expects to receive.');R.h1b=0;return}
+    if(sel.dataset.ok==='1'){fbox('h1fb2','good','Yes. The broken hand-off is Step 1 → Step 2. Fix that one connection first. Do not rebuild everything.');R.h1b=1}
+    else{fbox('h1fb2','bad','Right hand-off, but that fix is too big or does not touch the connection. Change only what makes the output usable as the next input.');R.h1b=0}
+  };
+  ['#h1e','#h1u','#h1p'].forEach(opt5);
+  $('#h1ver').onclick=()=>{
+    const e=+$('#h1e').value,u=+$('#h1u').value,p=+$('#h1p').value;
+    if(!e||!u||!p){fbox('h1fb3','info','Score all three goals first, then verify.');return}
+    $('#h1tt').hidden=false;R.h1s=`E ${e}/5, U ${u}/5, P ${p}/5`;
+    let m='The timetable says Route 12 leaves at 07:15. With a 10-minute delay it leaves at 07:25, but the notice says 07:05. It reads clearly and was quick, but it is wrong.';
+    if(p<=2&&u>=3&&e>=3)fbox('h1fb3','good',m+' So performance of 1 or 2 is honest. Typical honest scores: E 4, U 4, P 1 to 2.');
+    else if(p>2)fbox('h1fb3','bad',m+' Re-score performance after verifying: a wrong time cannot score above 2.');
+    else fbox('h1fb3','info',m+' Performance is right. Check efficiency (10 s is quick) and usability (the wording is clear).');
+  };
+  const hon=[['The practice records: 5 of 5',0],['The fresh record: it tests real performance',1],['Whichever score is higher',0]];
+  $('#h1hon').innerHTML=hon.map(h=>`<button class="opt" data-ok="${h[1]}">${esc(h[0])}</button>`).join('');
+  $('#h1hon').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;$$('#h1hon .opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');
+    if(b.dataset.ok==='1')fbox('h1fb4','good','Yes. Tuned inputs flatter the build. A fresh input shows the honest picture: 2 of 5 correct = 40%.');else fbox('h1fb4','bad','Not quite. The build was tuned on the practice records, so its 5 of 5 hides the weakness.')});
+  $('#h1copy').onclick=e=>copyText(`H1 Build and score\nChain order correct: ${R.h1a??'not checked'} of 4 slots\nBroken hand-off found and fixed: ${R.h1b===1?'yes (Step 1 to Step 2)':'not yet'}\nMy scores on the fresh record: ${R.h1s||'not scored'}\nHonest score: the fresh record, because tuned inputs flatter the build`,e.target);
+}
+/* ---------- H2 ---------- */
+const T2=[
+{t:'Normal',i:'Route 12 · 10 min · roadworks',o:'Route 12 now leaves at 07:05.',p:0,g:'performance',c:'chk',w:'07:15 + 10 min = 07:25, not 07:05. No step checks the timetable.'},
+{t:'Normal',i:'Route 7 · 5 min · traffic',o:'Route 7 now leaves at 07:15. Delayed 5 minutes.',p:1,w:'07:10 + 5 min = 07:15. It matches the timetable. A passed run still goes in the log.'},
+{t:'Normal',i:'Route 15 · 20 min · breakdown',o:'Route 15 now leaves at 07:35.',p:0,g:'performance',c:'chk',w:'07:25 + 20 min = 07:45, not 07:35. Nothing checked the time against the timetable.'},
+{t:'Edge · blank',i:'(blank record)',o:'Route 7 now leaves at 07:15. Delayed 5 minutes.',f:'Record is empty. Please re-enter the route and delay.',p:0,g:'performance',c:'s1',w:'It invented a route and a delay from nothing. Step 1 needs an empty-input check and a fallback.'},
+{t:'Edge · 0 minutes',i:'Route 21 · 0 min · none',o:'Route 21 is delayed 0 minutes and now leaves at 07:40.',f:'Route 21 is on time and leaves at 07:40.',p:0,g:'usability',c:'s2',w:'True but confusing: a 0-minute delay should read “on time”. Step 2’s wording needs a rule.'},
+{t:'Edge · missing route',i:'Route ? · 10 min · traffic',o:'Route 12 now leaves at 07:25.',f:'Route number missing. Please re-enter the record.',p:0,g:'performance',c:'s1',w:'It guessed the route. A graceful system asks instead of guessing.'}];
+const CN={s1:'Step 1: extract facts',s2:'Step 2: write notice',chk:'Missing: timetable check',none:'None needed'};
+let h2i=0,h2pts=0;
+function h2render(){
+  if(h2i>=T2.length){$('#h2stage').innerHTML='<div class="fb good">All 6 runs logged. Turn on “Graceful fallback” above to see the awkward inputs again, then pick your fallback sentence below.</div>';$('#h2head').textContent='Runs complete';$('#h2end').hidden=false;return}
+  const r=T2[h2i];$('#h2head').textContent=`Run ${h2i+1} of ${T2.length}`;
+  $('#h2stage').innerHTML=`<div class="grid2"><div><span class="tag">${esc(r.t)}</span><p><b>Input:</b> ${esc(r.i)}</p></div><div><span class="tag y">Output</span><p><b>${esc(r.o)}</b></p></div></div>
+  <div class="grid2"><div><label class="lbl" for="h2g">Which goal failed?</label><select id="h2g"><option value="">Choose…</option><option value="none">None: it passed</option><option value="efficiency">Efficiency</option><option value="usability">Usability</option><option value="performance">Performance</option></select></div>
+  <div><label class="lbl" for="h2c">Component to change</label><select id="h2c"><option value="">Choose…</option><option value="s1">Step 1: extract facts</option><option value="s2">Step 2: write notice</option><option value="chk">Missing: timetable check</option><option value="none">None needed</option></select></div></div>
+  <div class="row" style="margin-top:10px"><button class="btn go" id="h2logbtn">Log this run</button></div><div id="h2fbx" class="fb" hidden></div>`;
+  $('#h2logbtn').onclick=()=>{
+    const g=$('#h2g').value,c=$('#h2c').value;if(!g||!c){fbox('h2fbx','info','Choose the failed goal and the component.');return}
+    const eg=r.p?'none':r.g,ec=r.p?'none':r.c;let pts=0;if(g===eg)pts++;if(c===ec)pts++;h2pts+=pts;$('#h2pts').textContent='Points '+h2pts;
+    const ok=pts===2;
+    $('#h2log tbody').insertAdjacentHTML('beforeend',`<tr><td>${h2i+1}</td><td>${esc(r.t)}</td><td>${esc(r.o.length>46?r.o.slice(0,44)+'…':r.o)}</td><td>${esc(g)}</td><td>${esc(CN[c])}</td><td>${ok?'✔':'✘'}</td></tr>`);
+    R['run'+(h2i+1)]=`${r.t}: failed goal ${g}; component ${CN[c]}`;
+    fbox('h2fbx',ok?'good':'bad',`${ok?'Right.':'Check the evidence.'} ${r.w}`);
+    $('#h2logbtn').textContent='Next run →';$('#h2logbtn').onclick=()=>{h2i++;h2render()};
+  };
+}
+function init_h2(){
+  h2render();
+  const re=document.createElement('div');re.id='h2re';re.className='card';re.hidden=true;$('#h2log').closest('.card').after(re);
+  $('#h2fall').onchange=()=>{
+    if(!$('#h2fall').checked){re.hidden=true;return}
+    re.hidden=false;
+    re.innerHTML='<h3>Same awkward inputs, fallback ON</h3><div class="tw"><table class="log"><thead><tr><th>Input</th><th>Before (no fallback)</th><th>After (fallback ON)</th></tr></thead><tbody>'+T2.filter(r=>r.f).map(r=>`<tr><td>${esc(r.i)}</td><td>${esc(r.o)}</td><td><b>${esc(r.f)}</b></td></tr>`).join('')+'</tbody></table></div><p class="note">A graceful fallback flags the input and asks. It never gives a confident wrong answer.</p>';
+  };
+  const fo=[['Route 7 delayed 5 minutes (best guess).',0],['Record is empty. Please re-enter the route and delay.',1],['Error 500.',0]];
+  $('#h2fb_opts').innerHTML=fo.map(f=>`<button class="opt" data-ok="${f[1]}">${esc(f[0])}</button>`).join('');
+  $('#h2fb_opts').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;$$('#h2fb_opts .opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');R.h2f=b.textContent;
+    fbox('h2fb',b.dataset.ok==='1'?'good':'bad',b.dataset.ok==='1'?'Graceful: it flags the problem, asks for what is missing, and does not guess.':'Not graceful: a guess is a confident wrong answer, and a bare error code does not help a user.')});
+  $('#h2copy').onclick=e=>copyText(`H2 Log and edge case\n${[1,2,3,4,5,6].map(n=>`Run ${n}: ${R['run'+n]||'not logged'}`).join('\n')}\nMy fallback sentence: ${R.h2f||'not chosen'}`,e.target);
+}
+/* ---------- H3 ---------- */
+const BASE={E:4,U:4,P:2,s:10,pat:[0,1,0,0,1]};
+const LEV={
+ data:{n:'Data lever',d:'Add the official timetable to the input',E:3,U:4,s:14,pat:[1,1,1,0,1],pred:{e:'down',u:'same',p:'up'},cost:'Efficiency falls from 4/5 to 3/5: about 14 s per notice instead of 10 s, because there is more to prepare and a longer prompt.'},
+ prompt:{n:'Prompt lever',d:'Shorten the prompt',E:5,U:3,s:6,pat:[0,1,0,0,0],pred:{e:'up',u:'down',p:'down'},cost:'Efficiency rises, but usability falls (terse notices) and fewer times are correct.'},
+ structure:{n:'Structure lever',d:'Add a timetable check step',E:2,U:4,s:20,pat:[1,1,1,1,1],pred:{e:'down',u:'same',p:'up'},cost:'Efficiency falls from 4/5 to 2/5: about 20 s per notice, because of one more step.'},
+ all:{n:'All three at once',d:'Change the data, the prompt and the structure together',E:2,U:3,s:22,pat:[1,1,1,1,0],pred:null,cost:'Efficiency 2/5, usability 3/5. And F5, which was right before, is now wrong: you cannot tell which lever caused which change.'}};
+const lcount=a=>a.reduce((x,y)=>x+y,0);
+const dots=(pat)=>pat.map((v,i)=>`<span class="${v?'':'x'}">F${i+1} ${v?'✔':'✘'}</span>`).join('');
+let lvPick=null;const lvRan={};
+function init_h3(){
+  $('#h3before').innerHTML=dots(BASE.pat);
+  $('#h3opts').innerHTML=Object.entries(LEV).map(([k,v])=>`<button class="opt" data-k="${k}"><span class="tag ${k==='all'?'red':''}">${esc(v.n)}</span><br>${esc(v.d)}</button>`).join('');
+  $('#h3opts').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b)return;lvPick=b.dataset.k;$$('#h3opts .opt').forEach(x=>x.classList.toggle('sel',x===b))});
+  $('#h3run').onclick=()=>{
+    if(!lvPick){fbox('h3fb','info','Choose a lever first.');$('#h3res').hidden=false;return}
+    const pe=$('#h3pe').value,pu=$('#h3pu').value,pp=$('#h3pp').value;
+    if(!pe||!pu||!pp){$('#h3res').hidden=false;fbox('h3fb','info','Predict all three goals before you run.');return}
+    const L=LEV[lvPick],P=lcount(L.pat),pct=P*20,gain=pct-40;
+    $('#h3res').hidden=false;$('#h3after').innerHTML=dots(L.pat);
+    const arrow=(a,b)=>a===b?'same':(b>a?'up':'down');
+    $('#h3tab').innerHTML=`<thead><tr><th>Goal</th><th>Before</th><th>After</th><th>Your prediction</th></tr></thead><tbody>
+     <tr><td>Efficiency</td><td>${BASE.E}/5 (${BASE.s} s)</td><td>${L.E}/5 (${L.s} s)</td><td>${esc(pe)}</td></tr>
+     <tr><td>Usability</td><td>${BASE.U}/5</td><td>${L.U}/5</td><td>${esc(pu)}</td></tr>
+     <tr><td>Performance</td><td>2/5 = 40%</td><td>${P}/5 = ${pct}%</td><td>${esc(pp)}</td></tr></tbody>`;
+    let hit=0;if(L.pred){const a=[arrow(BASE.E,L.E),arrow(BASE.U,L.U),P>2?'up':P<2?'down':'same'];hit=[pe,pu,pp].filter((v,i)=>v===a[i]).length}
+    const gs=(gain>0?'+':'')+gain;
+    let msg=`Accuracy moved from 40% to ${pct}%: <b>${gs} pp</b>. ${L.cost}`;
+    msg+=L.pred?` You predicted ${hit} of 3 goals correctly.`:' Predictions do not help here: with three levers at once you cannot attribute the change. Change ONE lever at a time.';
+    fbox('h3fb',gain>0?'good':'bad',msg);
+    lvRan[lvPick]={E:L.E,U:L.U,P,s:L.s,pct,gain,ok:pct>=80&&L.s<15,pred:hit};
+    const rows=Object.entries(lvRan).map(([k,v])=>`<tr><td>${esc(LEV[k].n)}</td><td>${v.E}</td><td>${v.U}</td><td>${v.P}/5</td><td>${v.s} s</td><td>${v.pct}%</td><td>${v.gain>0?'+':''}${v.gain} pp</td><td>${v.ok?'✔ yes':'✘ no'}</td></tr>`).join('');
+    $('#h3cmp tbody').innerHTML=rows;
+  };
+  $('#h3decbtn').onclick=()=>{
+    const v=$('#h3dec').value;if(!v){fbox('h3dfb','info','Choose an option.');return}
+    R.h3d=v;
+    if(v==='data')fbox('h3dfb','good','Yes. The data lever reaches 80% and takes 14 s, so it meets both criteria. The structure lever reaches 100% but takes 20 s: it gains accuracy but costs too much. The prompt lever is quick but fails the accuracy criterion.');
+    else if(v==='structure')fbox('h3dfb','bad','It reaches 100% but takes 20 s, over the 15-second limit. It gains accuracy but costs too much.');
+    else if(v==='prompt')fbox('h3dfb','bad','The shorter prompt is fast (6 s) but only 20% correct: it fails the accuracy criterion.');
+    else fbox('h3dfb','bad','All three at once reaches only 80% and takes 22 s, and you cannot tell which lever helped or hurt. It fails the time criterion.');
+  };
+  $('#h3copy').onclick=e=>copyText(`H3 Lever Lab\nLevers I ran: ${Object.keys(lvRan).map(k=>`${LEV[k].n} (${lvRan[k].pct}%, ${lvRan[k].gain>0?'+':''}${lvRan[k].gain} pp, ${lvRan[k].s} s)`).join('; ')||'none yet'}\nMy decision: ${R.h3d||'not chosen'}`,e.target);
+}
+/* ---------- H4 ---------- */
+const REG=[['Efficiency (speed)','3/5 · 14 s','4/5 · 10 s',0],['Usability','4/5','3/5',1],['Performance','4 of 5 = 80%','5 of 5 = 100%',0],['Blank-record fallback','Pass','Fail: invents a delay',1],['No-personal-data rule','Pass','Fail: the notice adds the driver’s name',1]];
+const DEC=[['Lock Version 2: it is faster and more accurate',0],['Lock Version 1. Fix Version 2’s regressions and re-measure before it can replace it',1],['Lock both versions',0],['Lock Version 2 and hide the usability score',0]];
+const PAN=[
+ {q:'“How do you know it is not misleading anyone?”',o:[['It sounds professional.',0],['I verified the times against the official timetable, and a staff member approves every notice.',1],['Nobody has complained yet.',0]]},
+ {q:'“What did your change cost?”',o:[['About 4 seconds a notice (efficiency 4/5 to 3/5) for +40 pp accuracy.',1],['Nothing: it only added accuracy.',0],['I do not know.',0]]},
+ {q:'“What if the timetable changes tomorrow?”',o:[['The version is locked, so it will keep working.',0],['Remove the timetable from the data.',0],['Update the trusted data, re-run the regression check, then lock the new version.',1]]}];
+let panOk=[0,0,0];
+function init_h4(){
+  $('#h4imp').onclick=()=>{
+    const v=['#h4a','#h4b','#h4c'].map(s=>$(s).value);if(v.includes('')){fbox('h4fb1','info','Answer all three questions.');return}
+    const n=v.filter(x=>x==='1').length;R.h4i=n;
+    fbox('h4fb1',n===3?'good':'bad',n===3?'Complete: parents and students could be affected, a staff member compares each notice with the timetable, and the rule is no personal data plus human approval.':`${n} of 3 are right. Think about who is standing at the stop, how a mistake is caught before sending, and which rule protects people.`);
+  };
+  $('#h4reg').innerHTML=REG.map((r,i)=>`<tr><td><input type="checkbox" data-w="${i}" aria-label="${esc(r[0])} got worse"></td><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${esc(r[2])}</td></tr>`).join('');
+  $('#h4dec').innerHTML=DEC.map(d=>`<button class="opt" data-ok="${d[1]}">${esc(d[0])}</button>`).join('');
+  $('#h4dec').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;$$('#h4dec .opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel')});
+  $('#h4regbtn').onclick=()=>{
+    const sel=$('#h4dec .sel');if(!sel){fbox('h4fb2','info','Tick the rows and choose a decision.');return}
+    const ticks=$$('#h4reg input').map(x=>x.checked?1:0),want=REG.map(r=>r[3]);
+    const right=ticks.every((t,i)=>t===want[i]),dec=sel.dataset.ok==='1';
+    R.h4r=right&&dec;
+    if(right&&dec)fbox('h4fb2','good','Yes. Three criteria regressed: usability (4 to 3), the blank-record fallback (pass to fail) and the no-personal-data rule (pass to fail). Version 2 is faster and more accurate, but a regression on a rule you already passed means it cannot replace Version 1. Lock Version 1.');
+    else if(!right)fbox('h4fb2','bad','Check the table again. A row got worse when Version 2 is lower, or changes from Pass to Fail. Efficiency and performance improved.');
+    else fbox('h4fb2','bad','Good ticks, but the decision is wrong: a locked version must not regress any criterion, including governance rules.');
+  };
+  const chk=()=>{
+    const t=$('#h4txt').value;R.h4t=t;
+    const ok={gain:/[+−-]?\s*\d+\s*(pp|percentage point|%)/i.test(t),cost:/(cost|gave up|slower|trade|second|\d\s*s\b|efficiency)/i.test(t),c1:/(verif|checked|timetable|trusted source)/i.test(t),c2:/(human|approv|staff|impact check|reviewed)/i.test(t)};
+    $$('#h4chk li').forEach(li=>li.classList.toggle('y',!!ok[li.dataset.k]));
+  };
+  $('#h4txt').addEventListener('input',chk);
+  $('#h4q').innerHTML=PAN.map((p,i)=>`<div data-qi="${i}" style="margin-bottom:12px"><p><b>${esc(p.q)}</b></p><div class="opts">${p.o.map(o=>`<button class="opt" data-ok="${o[1]}">${esc(o[0])}</button>`).join('')}</div></div>`).join('');
+  $('#h4q').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b)return;const q=b.closest('[data-qi]'),i=+q.dataset.qi;
+    $$('.opt',q).forEach(x=>x.classList.remove('good','wrong','sel'));b.classList.add(b.dataset.ok==='1'?'good':'wrong');panOk[i]=b.dataset.ok==='1'?1:0;$('#h4sc').textContent='Panel '+panOk.reduce((a,c)=>a+c,0)+' / 3'});
+  $('#h4copy').onclick=e=>copyText(`H4 Lock and defend\nImpact check: ${R.h4i??'not checked'} of 3 right\nRegression and decision correct: ${R.h4r?'yes (lock Version 1)':'not yet'}\nMy 20-second defence: ${R.h4t||'(not written)'}\nPanel answers correct: ${panOk.reduce((a,c)=>a+c,0)} of 3`,e.target);
+}
+
+window.addEventListener('DOMContentLoaded',()=>show(location.hash.slice(1)||'h1',false));
+if(document.readyState!=='loading')show(location.hash.slice(1)||'h1',false);
+</script>
+
+</body></html>
